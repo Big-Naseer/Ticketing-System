@@ -39,6 +39,7 @@ model Event {
   createdAt   DateTime @default(now())
 }
 
+
 model Ticket {
   id         Int      @id @default(autoincrement())
   ticketCode String   @unique
