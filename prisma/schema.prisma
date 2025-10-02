@@ -15,9 +15,21 @@ datasource db {
 }
 
 
+
 model Ticket {
   id        Int      @id @default(autoincrement())
-  code      String   @unique // unique ticket code (QR/UUID)
-  ownerName String
+  code      String   @unique      // unique ticket identifier (UUID or QR)
+  ownerName String                // person's name
   status    String   @default("outside") // "inside" or "outside"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logs      TicketLog[]
+}
+
+model TicketLog {
+  id        Int      @id @default(autoincrement())
+  action    String               // "checkin" or "checkout"
+  timestamp DateTime @default(now())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
 }
