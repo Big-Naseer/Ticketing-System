@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -17,12 +16,15 @@ datasource db {
 
 
 model Ticket {
-  id        Int      @id @default(autoincrement())
-  code      String   @unique      // unique ticket identifier (UUID or QR)
-  ownerName String                // person's name
-  status    String   @default("outside") // "inside" or "outside"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int        @id @default(autoincrement())
+  code      String     @unique              // unique ticket identifier (UUID or QR)
+  ownerName String                        // person's name
+  status    String     @default("outside") // "inside" or "outside"
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  adminId   Int
+  admin     Admin       @relation(fields: [adminId], references: [id])
+
   logs      TicketLog[]
 }
 
@@ -32,4 +34,12 @@ model TicketLog {
   timestamp DateTime @default(now())
   ticketId  Int
   ticket    Ticket   @relation(fields: [ticketId], references: [id])
+}
+
+model Admin {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+
+  tickets  Ticket[]  // one admin -> many tickets
 }
