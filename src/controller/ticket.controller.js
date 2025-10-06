@@ -3,30 +3,48 @@ import { v4 as uuidv4 } from "uuid";
 
 // Create ticket
 export const createTicket = async (req, res) => {
-  const { ownerName } = req.body;
   try {
+    const { ownerName } = req.body;
+    const adminId = req.user.id; // 👈 coming from JWT middleware
+
     const ticket = await prisma.ticket.create({
       data: {
-        code: uuidv4(),   // generate unique ticket code
+        code: uuidv4(),
         ownerName,
+        adminId,
       },
     });
-    res.json(ticket);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create ticket" });
+
+    res.status(201).json(ticket);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };
 
 // Get ticket details
 export const getTicket = async (req, res) => {
-  const { code } = req.params;
-  const ticket = await prisma.ticket.findUnique({
-    where: { code },
-    include: { logs: true },
-  });
-  if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-  res.json(ticket);
+  try {
+    const { code } = req.params;
+    const adminId = req.user.id; // From token middleware
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { code },
+      include: { logs: true },
+    });
+
+    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+
+    // Check ownership
+    if (ticket.adminId !== adminId) {
+      return res.status(403).json({ error: "Unauthorized access to this ticket" });
+    }
+
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 // Get all tickets by logged-in Admin
 export const getMyTickets = async (req, res) => {
